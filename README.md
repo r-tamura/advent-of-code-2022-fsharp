@@ -1,0 +1,1 @@
+Each solution program takes its input from a local file.
