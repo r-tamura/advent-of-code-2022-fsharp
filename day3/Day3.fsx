@@ -31,6 +31,28 @@ let part1 lines =
     |> Array.sum
     |> printfn "%A"
 
+let MEMBERS_OF_GROUP = 3
+
+let splitByGroup (lines: string[]) =
+    seq { for start in 0..MEMBERS_OF_GROUP .. lines.Length - 1 -> lines[start .. start + MEMBERS_OF_GROUP - 1] }
+
+let folder (acc: char array) (v: string) : char array =
+    match acc with
+    | [||] -> v |> Seq.toArray
+    | [| _ |] when acc.Length > 0 -> acc |> System.String.Concat<char> |> findDuplicatedItems v
+    | _ -> failwith "should be unreachable"
+
+
+let part2 (lines: string[]) =
+    lines
+    |> splitByGroup
+    |> Array.ofSeq
+    |> Array.map (Array.fold folder [||])
+    |> Array.concat
+    |> Array.map mapCharToPoint
+    |> Array.sum
+    |> printfn "%A"
+
 let args = fsi.CommandLineArgs |> Array.tail
 
 let datapath, part =
@@ -50,4 +72,5 @@ match lines with
 | Some(lines) ->
     match part with
     | "1" -> lines |> part1
+    | "2" -> lines |> part2
     | _ -> failwith "part is '1'"
