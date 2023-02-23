@@ -15,30 +15,41 @@ module Assignment =
           endIndex = int endIndex }
 
     let contains (a1: Assignment) (a2: Assignment) : bool =
-        /// check if the first argument contains the second argument
+        /// <summary>check if the first argument contains the second argument</summary>
         a1.startIndex <= a2.startIndex && a2.endIndex <= a1.endIndex
+
+    let overrapped (a1: Assignment) (a2: Assignment) : bool =
+        // a1 ..345.
+        // a2 ...456
+        (a1.startIndex <= a2.startIndex && a2.startIndex <= a1.endIndex)
+        // a1 ..345.
+        // a2 .234..
+        || (a1.startIndex <= a2.endIndex && a2.endIndex <= a1.endIndex)
+        // a1 ..3..
+        // a2 .23..
+        || (a2.startIndex <= a1.startIndex && a1.startIndex <= a2.endIndex)
+        || (a2.startIndex <= a1.endIndex && a1.endIndex <= a2.endIndex)
 
     type CompareResult =
         | Contains
         | Contained
-        | Intersect
-        | NotIntersect
+        | Overwrapped
+        | NoOverwrap
 
     let compare (a1: Assignment) (a2: Assignment) : CompareResult =
-        if contains a1 a2 then
-            Contains
-        else if contains a2 a1 then
-            Contained
-        else if
-            a1.startIndex <= a2.startIndex && a2.startIndex <= a1.endIndex
-            || a1.startIndex <= a2.endIndex && a1.endIndex <= a2.endIndex
-        then
-            Intersect
-        else
-            NotIntersect
+        if contains a1 a2 then Contains
+        else if contains a2 a1 then Contained
+        else if overrapped a1 a2 then Overwrapped
+        else NoOverwrap
 
 let getAssignmentPair (line: string) : Assignment * Assignment =
     line.Split(",") |> Array.map Assignment.parse |> (fun l -> (l[0], l[1]))
+
+let boolToInt b = if b then 1 else 0
+
+let isAssignmentPairOverrapped =
+    getAssignmentPair >> (fun pair -> pair ||> Assignment.overrapped) >> boolToInt
+
 
 let part1 lines =
     lines
@@ -46,12 +57,12 @@ let part1 lines =
     |> Array.map (fun pair ->
         let result = pair ||> Assignment.compare
         result = Assignment.Contains || result = Assignment.Contained)
-    |> Array.map (fun isContaining ->
-        match isContaining with
-        | true -> 1
-        | false -> 0)
+    |> Array.map boolToInt
     |> Array.sum
     |> printfn "%A"
+
+let part2 lines =
+    lines |> Array.map isAssignmentPairOverrapped |> Array.sum |> printfn "%A"
 
 
 let args = fsi.CommandLineArgs |> Array.tail
@@ -73,5 +84,5 @@ match lines with
 | Some(lines) ->
     match part with
     | "1" -> part1 lines
-    | "2" -> failwith "not implemented yet"
+    | "2" -> part2 lines
     | _ -> failwith "no part found"
