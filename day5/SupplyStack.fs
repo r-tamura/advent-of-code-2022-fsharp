@@ -41,3 +41,12 @@ module SupplyStackService =
             | Some(crate: Crate) -> Stack.push crate stacks[moveto - 1]
 
         stacks
+
+    let moveSet amount from moveto (stacks: Stack<Crate> array) =
+        [ 0 .. amount - 1 ]
+        |> Seq.map (fun _ -> Stack.pop (stacks[from - 1]))
+        |> Seq.choose id
+        |> Seq.rev
+        |> Seq.iter (fun crate -> Stack.push crate stacks[moveto - 1])
+
+        stacks
