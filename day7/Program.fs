@@ -1,9 +1,5 @@
 ﻿open Performance
 
-type T = int * int
-
-let T (age, _) = T(423, 40)
-
 
 type Entry =
     | Directory of Directory
