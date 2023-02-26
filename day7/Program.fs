@@ -51,17 +51,22 @@ module Entry =
         | Entry.File { size = size } -> size
         | Entry.Directory { children = children } -> Map.values children |> Seq.sumBy sumSizes
 
-    let rec findSmallDirectries entry : (Directory * uint64) list =
+    let rec findDirectoriesBy (pred: string -> uint64 -> bool) (pwd: string) entry : (string * uint64) list =
         match entry with
         | File _ -> []
-        | Directory d ->
+        | Directory { name = name; children = children } ->
             let size = sumSizes entry
 
-            let smallDirectries =
-                List.collect findSmallDirectries (d.children |> Map.values |> List.ofSeq)
+            let dirPath =
+                match name with
+                | "/" -> name
+                | _ -> System.IO.Path.Combine(pwd, name)
 
-            if size <= 100000uL then
-                [ d, size ] @ smallDirectries
+            let smallDirectries =
+                List.collect (findDirectoriesBy pred dirPath) (children |> Map.values |> List.ofSeq)
+
+            if pred dirPath size then
+                [ dirPath, size ] @ smallDirectries
             else
                 smallDirectries
 
@@ -72,25 +77,18 @@ module Entry =
 
         let rec print' level path =
             let entry = find path root
+            let indent = Array.create (level * 2) " " |> System.String.Concat
 
-            if path = "" then
-                match entry with
-                | Entry.File _ -> failwith "root shoud not be a file"
-                | Entry.Directory { name = name
-                                    children = children: Map<string, Entry> } ->
-                    printfn "/"
-                    Map.iter (fun name e -> print' (level + 1) (path + "/" + name)) children
-            else
-                match entry with
-                | Entry.File { name = name; size = size } ->
-                    let indent = getIndent level
-                    printfn "%s- %s (file, size=%d)" indent name size
-                | Entry.Directory { name = name; children = children } ->
-                    let indent = Array.create (level * 2) " " |> System.String.Concat
-                    printfn "%s- %s (dir)" indent name
-                    Map.iter (fun name e -> print' (level + 1) (path + "/" + name)) children
+            match entry with
+            | Entry.File { name = name; size = size } -> printfn "%s- %s (file, size=%d)" indent name size
+            | Entry.Directory { name = name; children = children } ->
+                printfn "%s- %s (dir)" indent name
 
-        print' 0 ""
+                match path with
+                | "/" -> Map.iter (fun name e -> print' (level + 1) (path + name)) children
+                | _ -> Map.iter (fun name e -> print' (level + 1) (path + "/" + name)) children
+
+        print' 0 "/"
 
 
 type Command =
@@ -142,9 +140,23 @@ let part1 lines =
     lines
     |> parseInput
     |> buildDirectoryTree
-    |> Entry.findSmallDirectries
-    |> List.map (fun (e, size) -> (e.name, size))
-    |> List.sumBy (fun (name, size) -> size)
+    |> Entry.findDirectoriesBy (fun dirPath size -> size > 100000UL) "/"
+    |> printfn "%A"
+
+let FILESYSTEM_STORAGE_SIZE = 70000000UL
+let UPDATE_REQUIREMENTS_SIZE = 30000000UL
+
+let part2 liens =
+    let root = liens |> parseInput |> buildDirectoryTree
+    let usedSpace = root |> Entry.sumSizes
+    let unsedSpace = FILESYSTEM_STORAGE_SIZE - usedSpace
+    let neededSpace = UPDATE_REQUIREMENTS_SIZE - unsedSpace
+
+    root
+    |> Entry.findDirectoriesBy (fun _ size -> size > neededSpace) "/"
+    |> List.sortBy (fun (_, size) -> size)
+    |> List.head
+    ||> (fun _ size -> size)
     |> printfn "%u"
 
 
@@ -162,6 +174,7 @@ let main argv =
 
         match part with
         | "1" -> part1 lines
+        | "2" -> part2 lines
         | _ -> failwith """part is " 1 " or " 2 """
     }
 
