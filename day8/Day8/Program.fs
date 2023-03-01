@@ -6,7 +6,9 @@ let main argv =
         | [| filepath |] -> (filepath, 1)
         | _ -> failwith "usage: dotnet run <input file> <part>"
 
-
-    TreetopTreeHouse.Part1.run filepath
+    match part with
+    | 1 -> TreetopTreeHouse.Part1.run filepath
+    | 2 -> TreetopTreeHouse.Part2.run filepath
+    | _ -> failwith "part in '1' or '2'"
 
     0

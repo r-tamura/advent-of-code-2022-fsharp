@@ -13,39 +13,81 @@ module Array2D =
 let private split (s: string) : char[] = Seq.toArray s
 
 let loadInput path =
-    path |> System.IO.File.ReadAllLines |> Array.map split |> array2D
+    let toString v = v.ToString()
 
-let getRow row (heightMap: char[,]) = heightMap[row, *]
+    path
+    |> System.IO.File.ReadAllLines
+    |> Array.map split
+    |> array2D
+    |> Array2D.map toString
+    |> Array2D.map int
 
-let getCol col (heightMap: char[,]) = heightMap[*, col]
+let getRow row (heightMap: int[,]) = heightMap[row, *]
+
+let getCol col (heightMap: int[,]) = heightMap[*, col]
 
 
-let isVisible i j (heightMap: char[,]) =
-    let targetHeight = int heightMap[i, j]
-    let row, col = (getRow i heightMap, getCol j heightMap)
-    let left = if j > 0 then row[.. j - 1] else [||]
+let getFourDirection i j map =
+    let row, col = (getRow i map, getCol j map)
+    let left = (if j > 0 then row[.. j - 1] else [||]) |> Array.rev
     let right = if j < row.Length then row[j + 1 ..] else [||]
-    let top = if i > 0 then col[.. i - 1] else [||]
+    let top = (if i > 0 then col[.. i - 1] else [||]) |> Array.rev
     let bottom = if i < col.Length then col[i + 1 ..] else [||]
+    (top, right, bottom, left)
 
-    let isVisibleDirection targetHeight line =
-        match line with
-        | [||] -> true
-        | _ -> line |> Array.map (int >> (>) targetHeight) |> Array.forall id
+type View =
+    | Blocked
+    | NotBlocked
 
+let getViewingDistance h line =
+    match line with
+    | [||] -> (0, NotBlocked)
+    | _ ->
+        line
+        |> Array.tryFindIndex ((<=) h)
+        |> Option.map (fun index -> (index + 1, Blocked))
+        |> Option.defaultValue (line.Length, NotBlocked)
 
-    [| left; right; top; bottom |]
+let isVisibleDirection targetHeight line =
+    match getViewingDistance targetHeight line with
+    | (_, Blocked) -> false
+    | _ -> true
+
+let isVisible i j (map: int[,]) =
+    let targetHeight = map[i, j]
+    let top, right, bottom, left = getFourDirection i j map
+
+    [| top; right; bottom; left |]
     |> Array.map (isVisibleDirection targetHeight)
     |> Array.exists id
 
+let calcScenicScore i j (map: int[,]) : int =
+    let targetHeight = map[i, j]
+    let top, right, bottom, left = getFourDirection i j map
 
+    let folder (acc: int) (viewingDistance: int * View) =
+        let distance, _ = viewingDistance
+        acc * distance
 
+    [| top; right; bottom; left |]
+    |> Array.map (getViewingDistance targetHeight)
+    |> Array.fold folder 1
 
-
-let countVisible (heightMap: char[,]) =
+let countVisible (heightMap: int[,]) =
     heightMap
     |> Array2D.foldi (fun i j count h -> if isVisible i j heightMap then count + 1 else count) 0
+
+let findHighestSenicScore (map: int[,]) =
+    map
+    |> Array2D.foldi (fun i j max (h: int) -> Array.max [| max; (calcScenicScore i j map) |]) 0
+
+
 
 module Part1 =
     let run (path: string) =
         path |> loadInput |> countVisible |> printfn "%A"
+
+
+module Part2 =
+    let run (path: string) =
+        path |> loadInput |> findHighestSenicScore |> printfn "%A"
