@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day9", "Day9\Day9.fsproj", "{611FE2E2-71E9-4665-8EC8-3ECEFEBABC51}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RopeBridge", "RopeBridge\RopeBridge.fsproj", "{0424070F-B169-45B9-834B-930BE1355D94}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RopeBridge.Test", "RopeBridge.Test\RopeBridge.Test.fsproj", "{6BF72B42-6A3C-4540-B024-08F1BFB82C29}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{611FE2E2-71E9-4665-8EC8-3ECEFEBABC51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{611FE2E2-71E9-4665-8EC8-3ECEFEBABC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{611FE2E2-71E9-4665-8EC8-3ECEFEBABC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{611FE2E2-71E9-4665-8EC8-3ECEFEBABC51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0424070F-B169-45B9-834B-930BE1355D94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0424070F-B169-45B9-834B-930BE1355D94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0424070F-B169-45B9-834B-930BE1355D94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0424070F-B169-45B9-834B-930BE1355D94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BF72B42-6A3C-4540-B024-08F1BFB82C29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BF72B42-6A3C-4540-B024-08F1BFB82C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BF72B42-6A3C-4540-B024-08F1BFB82C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BF72B42-6A3C-4540-B024-08F1BFB82C29}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
