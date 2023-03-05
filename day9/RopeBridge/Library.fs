@@ -43,8 +43,7 @@ module Position =
         (row1 - row2, col1 - col2)
 
 type State =
-    { Head: Position
-      Tail: Position
+    { Knots: Position[]
       Footprints: Set<Position> }
 
 module State =
@@ -52,40 +51,43 @@ module State =
     let private visit (row, col) (footprints) = Set.add (row, col) footprints
 
     /// RopeBridgeの状態を初期化します。HeadとTailの開始位置は一番左下の座標になります。
-    let init =
+    let init knots =
+        let initialFootprints = visit (Array.last knots) Set.empty
 
-        let start = (0, 0)
+        { Knots = knots
+          Footprints = initialFootprints }
 
-        { Head = start
-          Tail = start
-          Footprints = visit start Set.empty }
 
-    let followHead head tail =
-        let delta = Position.sub head tail
-        let row, col = tail
+    let followAhead k1 k2 =
+        let delta = Position.sub k1 k2
+        let row, col = k2
 
         match delta with
-        | (0, 0) -> tail
-        | (drow, dcol) when (abs drow + abs dcol) < 2 -> tail
+        | (0, 0) -> k2
+        | (drow, dcol) when abs drow < 2 && abs dcol < 2 -> k2
         | (0, dcol) when dcol < -1 -> (row, col - 1)
         | (0, dcol) when dcol > 1 -> (row, col + 1)
         | (drow, 0) when drow < -1 -> (row - 1, col)
         | (drow, 0) when drow > 1 -> (row + 1, col)
         | (2, 1)
-        | (1, 2) -> (row + 1, col + 1)
+        | (1, 2)
+        | (2, 2) -> (row + 1, col + 1)
         | (2, -1)
-        | (1, -2) -> (row + 1, col - 1)
+        | (1, -2)
+        | (2, -2) -> (row + 1, col - 1)
         | (-2, 1)
-        | (-1, 2) -> (row - 1, col + 1)
+        | (-1, 2)
+        | (-2, 2) -> (row - 1, col + 1)
         | (-2, -1)
-        | (-1, -2) -> (row - 1, col - 1)
-        | _ -> tail
+        | (-1, -2)
+        | (-2, -2) -> (row - 1, col - 1)
+        | _ -> failwith $"unexpected relation: {k1} {k2} d {delta}"
 
 
     let step motion (s: State) =
         let oneStep (motion: Motion) (s: State) =
             let nextHead =
-                let row, col = s.Head
+                let row, col = s.Knots[0]
 
                 match motion with
                 | Motion.Up(_) -> (row - 1, col)
@@ -93,12 +95,23 @@ module State =
                 | Motion.Down(_) -> (row + 1, col)
                 | Motion.Left(_) -> (row, col - 1)
 
-            let nextTail = followHead nextHead s.Tail
+            let nextKnots =
+                s.Knots[1..]
+                |> List.ofArray
+                |> List.fold
+                    (fun (nextKnots: Position list) (knot: Position) ->
+                        List.last nextKnots
+                        |> (fun lastKnot -> followAhead lastKnot knot)
+                        |> (fun nextKnot -> List.append nextKnots [ nextKnot ]))
+                    [ nextHead ]
+                |> List.toArray
+
+            let nextTail = Array.last nextKnots
             let nextFootprints = visit nextTail s.Footprints
 
-            { Head = nextHead
-              Tail = nextTail
+            { Knots = nextKnots
               Footprints = nextFootprints }
+
 
         let step =
             match motion with
@@ -112,13 +125,58 @@ module State =
 
     let countVisited (s: State) = Set.count s.Footprints
 
-// let toString (s: State) =
-//     s.Board
-//     |> Array2D.mapi (fun i j visited ->
-//         match visited with
-//         | true -> '#'
-//         | false -> '.')
-//     |> (fun b ->
-//         let rowCount = Array2D.length1 b
-//         [| 0 .. rowCount - 1 |] |> Array.map (fun row -> b[row, *] |> System.String))
-//     |> String.concat "\n"
+    type PointStatus =
+        | Mounted of int
+        | Visited
+        | Clean
+
+    let toString (s: State) =
+        let minRow, maxRow, minCol, maxCol =
+            [| s.Knots; Set.toArray s.Footprints |]
+            |> Array.concat
+            |> Array.unzip
+            |> (fun (rows, cols) ->
+                ((rows |> Array.min), (rows |> Array.max), (cols |> Array.min), (cols |> Array.max)))
+
+        let height = maxRow - minRow
+        let width = maxCol - minCol
+
+        let length = (max height width) + 3
+
+
+        let folder (board: PointStatus[,]) (row, col) =
+            board[row, col] <- Visited
+            board
+
+        let applyKnots (board: PointStatus[,]) (index, (row, col)) =
+            board[row, col] <- Mounted index
+            board
+
+        let transformCoordinate minRow maxRow minCol (row, col) = (maxRow + (length - 1) - row, col)
+
+        let log v = printfn "%A" v; v
+
+        let transformedFootprints = s.Footprints |> Set.map (transformCoordinate minRow maxRow minCol)
+        let transformedKnots = s.Knots |> Array.map (transformCoordinate minRow maxRow minCol)
+        let board =
+            Array2D.create length length Clean
+            |> (fun board -> Set.fold folder board transformedFootprints)
+            |> (fun board ->
+                ([| 0 .. s.Knots.Length - 1 |], transformedKnots)
+                ||> Array.zip
+                |> Array.rev
+                |> Array.fold applyKnots board)
+
+        let oneDigitIntToChar i = char (48 + i)
+
+        board
+        |> Array2D.mapi (fun i j status ->
+            match status with
+            | Mounted 0 -> 'H'
+            | Mounted i -> oneDigitIntToChar i
+            | Visited -> '#'
+            | Clean -> '.')
+        |> (fun b ->
+            let rowCount = Array2D.length1 b
+            [| 0 .. rowCount - 1 |] |> Array.map (fun row -> b[row, *] |> System.String))
+        |> String.concat "\n"
