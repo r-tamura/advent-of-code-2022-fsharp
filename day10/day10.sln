@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day10", "Day10\Day10.fsproj", "{0D2577FC-C351-4606-A60B-B899B315EAAD}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CathodeRayTube", "CathodeRayTube\CathodeRayTube.fsproj", "{CCE28690-CBED-4245-B429-DF2BC1A324ED}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CathodeRayTube.Test", "CathodeRayTube.Test\CathodeRayTube.Test.fsproj", "{AA389FB8-C1AA-4199-98F1-E67F6FC532C0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D2577FC-C351-4606-A60B-B899B315EAAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D2577FC-C351-4606-A60B-B899B315EAAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D2577FC-C351-4606-A60B-B899B315EAAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D2577FC-C351-4606-A60B-B899B315EAAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCE28690-CBED-4245-B429-DF2BC1A324ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCE28690-CBED-4245-B429-DF2BC1A324ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCE28690-CBED-4245-B429-DF2BC1A324ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCE28690-CBED-4245-B429-DF2BC1A324ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA389FB8-C1AA-4199-98F1-E67F6FC532C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA389FB8-C1AA-4199-98F1-E67F6FC532C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA389FB8-C1AA-4199-98F1-E67F6FC532C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA389FB8-C1AA-4199-98F1-E67F6FC532C0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
