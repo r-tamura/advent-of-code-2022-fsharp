@@ -13,7 +13,6 @@ module Instruction =
         | [| "addx"; operand1 |] -> Addx(int operand1)
         | _ -> failwith $"invalid operation: {s}"
 
-
 type VM =
     { Cycle: uint
       X: int
@@ -67,12 +66,12 @@ module VM =
             let mutable _vm = vm
 
             for instr in instructions do
-                _vm <- tick _vm instr
                 yield _vm
+                _vm <- tick _vm instr
 
                 while _vm.Queue.Count > 0 do
-                    _vm <- tick _vm instr
                     yield _vm
+                    _vm <- tick _vm instr
         }
 
     let run (instructions: Instruction seq) (vm: VM) =
