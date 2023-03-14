@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day11", "Day11\Day11.fsproj", "{E30A8BD4-A3B3-4FED-AF9F-6103DEBD5B4E}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MonkeyInTheMiddle", "MonkeyInTheMiddle\MonkeyInTheMiddle.fsproj", "{05A46B66-96BE-48EA-B92F-6B9028AFFBE5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MonkeyInTheMiddle.Test", "MonkeyInTheMiddle.Test\MonkeyInTheMiddle.Test.fsproj", "{336ACDB4-1F84-4BC3-963E-91EDAEDD4771}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E30A8BD4-A3B3-4FED-AF9F-6103DEBD5B4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E30A8BD4-A3B3-4FED-AF9F-6103DEBD5B4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E30A8BD4-A3B3-4FED-AF9F-6103DEBD5B4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E30A8BD4-A3B3-4FED-AF9F-6103DEBD5B4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05A46B66-96BE-48EA-B92F-6B9028AFFBE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05A46B66-96BE-48EA-B92F-6B9028AFFBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05A46B66-96BE-48EA-B92F-6B9028AFFBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05A46B66-96BE-48EA-B92F-6B9028AFFBE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{336ACDB4-1F84-4BC3-963E-91EDAEDD4771}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336ACDB4-1F84-4BC3-963E-91EDAEDD4771}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336ACDB4-1F84-4BC3-963E-91EDAEDD4771}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336ACDB4-1F84-4BC3-963E-91EDAEDD4771}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
