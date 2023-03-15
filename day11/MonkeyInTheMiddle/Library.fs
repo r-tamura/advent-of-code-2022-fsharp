@@ -1,25 +1,26 @@
 ﻿namespace MonkeyInTheMiddle
 
+
 type Operator =
     | Add
     | Multiply
 
 type Operand =
-    | Literal of int
+    | Literal of uint64
     | Variable
 
 type MonkeyId = int
-type WorryLevel = int
+type WorryLevel = uint64
 
 type Monkey =
     { MonkeyId: int
       Items: WorryLevel list
       Operate: Operator * Operand
-      Pick: int * int * int
+      Pick: uint64 * int * int
       Stats: Stats }
 
 and Stats = InspectCount
-and InspectCount = int
+and InspectCount = uint64
 
 module Monkey =
 
@@ -28,9 +29,9 @@ module Monkey =
           Items = items
           Operate = operate
           Pick = pick
-          Stats = 0 }
+          Stats = 0UL }
 
-    let private bored level = (/) level 3
+    let private bored level = (/) level 3UL
 
     let private operate' level (monkey: Monkey) =
         let operator, operand = monkey.Operate
@@ -45,9 +46,9 @@ module Monkey =
         | Add -> old + evaluated
         | Multiply -> old * evaluated
 
-    let operate index (monkey: Monkey) =
+    let operate index adjuster (monkey: Monkey) =
         let old = monkey.Items[index]
-        let new' = operate' old monkey |> bored
+        let new' = operate' old monkey |> adjuster
 
         { monkey with
             Items = monkey.Items[.. index - 1] @ [ new' ] @ monkey.Items[index + 1 ..] }
@@ -57,24 +58,25 @@ module Monkey =
         let cond, then', else' = monkey.Pick
 
         let receiver =
-            match (level % cond) = 0 with
+            match (level % cond) = (uint64 0) with
             | true -> then'
             | false -> else'
 
         (receiver, monkey)
 
     let private incrementInspectCount monkey =
-        { monkey with Stats = monkey.Stats + 1 }
+        { monkey with
+            Stats = monkey.Stats + 1UL }
 
 
-    let inspect index (monkey: Monkey) =
-        monkey |> incrementInspectCount |> operate index |> choose index
+    let inspect index adjuster (monkey: Monkey) =
+        monkey |> incrementInspectCount |> operate index adjuster |> choose index
 
-    let inspectAll (monkey: Monkey) =
+    let inspectAll adjuster (monkey: Monkey) =
         let itemCount = monkey.Items.Length
 
         [ 0 .. itemCount - 1 ]
-        |> List.mapFold (fun prevMonkey index -> inspect index prevMonkey) monkey
+        |> List.mapFold (fun prevMonkey index -> inspect index adjuster prevMonkey) monkey
 
     let pickItem (monkey: Monkey) =
         match monkey.Items with
@@ -97,15 +99,15 @@ module MonkeyCollection =
         | [] -> failwith $"{sender.MonkeyId}'s items should not be empty"
         | x :: rest -> monkeys |> List.updateAt from' sender' |> List.updateAt to' reciever'
 
-    let takeTurn from' (monkeys: Monkey list) =
+    let takeTurn from' adjuster (monkeys: Monkey list) =
         let sender = monkeys[from']
-        let receivers, sender' = Monkey.inspectAll sender
+        let receivers, sender' = Monkey.inspectAll adjuster sender
         let monkeys' = List.updateAt from' sender' monkeys
         receivers |> List.fold (fun monkeys to' -> throw from' to' monkeys) monkeys'
 
-    let round (monkeys: Monkey list) =
+    let round adjuster (monkeys: Monkey list) =
         [ 0 .. monkeys.Length - 1 ]
-        |> List.fold (fun monkeys from' -> takeTurn from' monkeys) monkeys
+        |> List.fold (fun monkeys from' -> takeTurn from' adjuster monkeys) monkeys
 
 module StringPlus =
     let startsWith (searchString: string) (s: string) =
@@ -136,7 +138,7 @@ module Parser =
         | [| "Starting items"; value |] ->
             value.Split ","
             |> Array.map (StringPlus.remove ' ')
-            |> Array.map int
+            |> Array.map uint64
             |> Array.toList
             |> (fun levels -> Items levels)
         | [| "Operation"; value |] ->
@@ -151,7 +153,7 @@ module Parser =
                 let operand' =
                     match operand with
                     | "old" -> Variable
-                    | _ -> Literal(int operand)
+                    | _ -> Literal(uint64 operand)
 
                 Operation(op, operand')
 
@@ -159,7 +161,7 @@ module Parser =
         | [| "Test"; value |] ->
             let m = Regex.Match(value, @"divisible by (\d+)")
             let brerakpoint = m.Groups[1].Captures[0].Value
-            PickerCondition(int brerakpoint)
+            PickerCondition(uint64 brerakpoint)
         | [| "If true"; value |] ->
             let m = Regex.Match(value, @"throw to monkey (\d+)")
             let monkeyId = m.Groups[1].Captures[0].Value
@@ -197,7 +199,7 @@ module Parser =
               Items = items
               Operate = operation
               Pick = pick
-              Stats = 0 }
+              Stats = 0UL }
 
         monkey
 

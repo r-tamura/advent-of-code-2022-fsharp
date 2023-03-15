@@ -1,14 +1,16 @@
 ﻿open MonkeyInTheMiddle
 
-let rounds count initialMonkeys =
+let rounds count adjuster initialMonkeys =
     seq { 0 .. count - 1 }
-    |> Seq.fold (fun monkeys _ -> MonkeyCollection.round monkeys) initialMonkeys
+    |> Seq.fold (fun monkeys _ -> MonkeyCollection.round adjuster monkeys) initialMonkeys
 
 let part1 inputFilePath =
+    let bored level = (/) level 3UL
+
     inputFilePath
     |> Parser.read
     |> Seq.toList
-    |> rounds 20
+    |> rounds 20 bored
     |> List.map (fun monkey -> monkey.Stats)
     |> List.sortDescending
     |> List.take 2
@@ -16,7 +18,22 @@ let part1 inputFilePath =
     |> printfn "%A"
 
 let part2 inputFilePath =
-    inputFilePath |> (fun _ -> failwith "part 2 solution is not implemented")
+    let monkeys = inputFilePath |> Parser.read |> Seq.toList
+
+    let commonMultiple =
+        monkeys
+        |> List.map ((fun m -> m.Pick) >> (fun (divisible, t, f) -> divisible))
+        |> List.reduce (fun acc divisible -> acc * divisible)
+
+    let easy level = (%) level commonMultiple
+
+    monkeys
+    |> rounds 10000 easy
+    |> List.map (fun monkey -> monkey.Stats)
+    |> List.sortDescending
+    |> List.take 2
+    |> List.reduce (fun acc count -> acc * count)
+    |> printfn "%d"
 
 [<EntryPoint>]
 let main argv =
