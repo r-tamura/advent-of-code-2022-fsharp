@@ -24,7 +24,7 @@ module Parser =
         | _ -> Middle((uint c) - (uint 'a'))
 
     let parse lines =
-        lines |> List.map (Seq.map char2height) |> array2D
+        lines |> List.map (Seq.map char2height >> List.ofSeq) |> array2D
 
 module Point =
     let (+) (p1: Point) (p2: Point) =
@@ -61,11 +61,16 @@ module HeightMap =
 
         find' (0, 0)
 
-
-    let private canClimbTo (board: HeightMap) from' to' =
+    let private canGo (comparator: uint -> uint -> bool) (board: HeightMap) from' to' =
         let fromHeight = getHeight from' board
         let toHeight = getHeight to' board
-        (fromHeight + 1u) >= toHeight
+
+        comparator fromHeight toHeight
+
+    let private canGoDown =
+        canGo (fun h1 h2 -> h1 <= h2 || h1 > h2 && (int h1) - (int h2) <= 1)
+
+    let private canClimbTo = canGo (fun h1 h2 -> (h1 + 1u) >= h2)
 
     let private getAllNeighbors p board =
         let n, m = Array2D.length1 board, Array2D.length2 board
@@ -76,8 +81,12 @@ module HeightMap =
             let i, j = p
             0 <= i && i < n && 0 <= j && j < m)
 
-    let neighbors p (board: HeightMap) =
+    let neighborsToSummit p (board: HeightMap) =
         getAllNeighbors p board |> List.filter (canClimbTo board p)
+
+
+    let neighborsToDown p (board: HeightMap) =
+        getAllNeighbors p board |> List.filter (canGoDown board p)
 
 type VisitState =
     | NotVisited
@@ -95,7 +104,7 @@ module Array2D =
         let i, j = p
         array[i, j] <- v
 
-let breathFirstSearch (board: WayPoint[,]) (s: Point) =
+let breathFirstSearch (neighborFinder: Point -> HeightMap -> Point list) (board: WayPoint[,]) (s: Point) =
     let n, m = Array2D.length1 board, Array2D.length2 board
     let mutable pred = Array2D.init n m (fun _ _ -> None)
     let mutable dist = Array2D.init n m (fun _ _ -> Microsoft.FSharp.Core.int.MaxValue)
@@ -119,13 +128,12 @@ let breathFirstSearch (board: WayPoint[,]) (s: Point) =
     let rec loop () =
         let found, u = q.TryDequeue()
 
-
         match (found, u) with
-        | false, u -> ()
+        | false, _ -> ()
         | true, u ->
             let ui, uj = u
 
-            for v in HeightMap.neighbors u board do
+            for v in neighborFinder u board do
                 let vi, vj = v
 
                 if visited[vi, vj] = NotVisited then
@@ -144,8 +152,29 @@ let breathFirstSearch (board: WayPoint[,]) (s: Point) =
 
 let fewestStepCount (board: HeightMap) =
     let start = HeightMap.find (fun h -> h = Start) board
-    let d, _ = breathFirstSearch board start
+    let d, _ = breathFirstSearch HeightMap.neighborsToSummit board start
     let end' = HeightMap.find (fun h -> h = End) board
 
     let ei, ej = end'
     d[ei, ej]
+
+let fewestStepCounFromEnd (board: HeightMap) =
+    let end' = HeightMap.find (fun h -> h = End) board
+    let d, _ = breathFirstSearch HeightMap.neighborsToDown board end'
+
+    let mutable lowests = []
+
+    board
+    |> Array2D.iteri (fun i j h ->
+        match h with
+        | Start
+        | Middle 0u -> lowests <- lowests @ [ (i, j) ]
+        | _ -> ())
+
+    let i, j =
+        lowests
+        |> List.minBy (fun p ->
+            let i, j = p
+            d[i, j])
+
+    d[i, j]

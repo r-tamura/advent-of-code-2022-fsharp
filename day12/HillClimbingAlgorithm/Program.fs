@@ -8,7 +8,13 @@ let part1 inputFilePath =
     |> fewestStepCount
     |> printfn "%A"
 
-let part2 inputFilePath = inputFilePath |> printfn "%A"
+let part2 inputFilePath =
+    inputFilePath
+    |> read
+    |> Array.toList
+    |> Parser.parse
+    |> fewestStepCounFromEnd
+    |> printfn "%A"
 
 [<EntryPoint>]
 let main argv =
