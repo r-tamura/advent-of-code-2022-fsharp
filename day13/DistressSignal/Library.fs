@@ -37,6 +37,12 @@ module Parser =
         | Success (packets, _, _) -> packets
         | _ -> failwith "Could not parse input."
 
+    let parseAsList input =
+        let result = run ppairs input
+        match result with
+        | Success (packets, _, _) -> packets |> List.map (fun (left, right) -> [left; right]) |> List.concat
+        | _ -> failwith "Could not parse input."
+
     pvalueRef.Value <- choice [pnumber; ppacket]
 
 

@@ -6,11 +6,6 @@ open Xunit
 open DistressSignal
 open FParsec
 
-let test input =
-    match Parser.parse input with
-    | Success (result, _, _) -> result
-    | Failure (message, _, _) -> failwith message
-
 module Parser =
 
     [<Fact>]
@@ -18,7 +13,7 @@ module Parser =
         let input = """[1, 2, 3]
                     [4, 5, 6]
                     """
-        let actual = test input
+        let actual = Parser.parse input
         let expected = [(
             List [Number 1; Number 2; Number 3],
             List [Number 4; Number 5; Number 6]
@@ -33,12 +28,27 @@ module Parser =
                     [[7]]
                     [[]]
                     """
-        let actual = test input
+        let actual = Parser.parse input
         let expected = [(
             List [Number 1; Number 2; Number 3],
             List [Number 4; Number 5; Number 6]
         ); (List [List [Number 7]], List [List []])]
         Assert.Equal<(Packet * Packet) list>(expected, actual)
+
+    [<Fact>]
+    let ``Parse as list of packets`` () =
+        let input = """[1, 2, 3]
+                    [4, 5, 6]
+
+                    [[7]]
+                    [[]]
+                    """
+        let actual = Parser.parseAsList input
+        let expected = [
+            List [Number 1; Number 2; Number 3];
+            List [Number 4; Number 5; Number 6];
+        List [List [Number 7]]; List [List []]]
+        Assert.Equal<Packet list>(expected, actual)
 
 module Solution =
     open Packet

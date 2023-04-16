@@ -15,8 +15,24 @@ let part1 inputFilePath =
 
 
 let part2 inputFilePath  =
-  failwith "not implemented"
-  ()
+    let DIVIDERS = [List [Number 2]; List[Number 6]]
+    let input = System.IO.File.ReadAllText inputFilePath
+    let packets = (Parser.parseAsList input) @ DIVIDERS
+
+    packets
+    |> List.sortWith (
+        fun p1 p2  ->
+            match Packet.comparePair (p1, p2) with
+            | Packet.RightOrder -> -1
+            | Packet.WrongOrder -> 1
+            | Packet.Same -> 0
+    )
+    |> List.mapi (fun i p -> (i+1, p))
+    |> List.filter (fun (i, p) -> (List.contains p DIVIDERS))
+    |> List.map (fun (i, _) -> i)
+    |> List.take 2
+    |> List.reduce (*)
+    |> printfn "%A"
 
 [<EntryPoint>]
 let main argv =
