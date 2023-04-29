@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "App", "App\App.fsproj", "{A10636C6-3E52-40AF-B6CB-2F9F2D3F7CAA}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RegolithReservoir", "RegolithReservoir\RegolithReservoir.fsproj", "{9D9B3601-45FD-4481-9FE5-536EB4EEF8D8}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RegolithReservoir.Test", "RegolithReservoir.Test\RegolithReservoir.Test.fsproj", "{9443999C-CB1E-4514-829D-93FE1820F941}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A10636C6-3E52-40AF-B6CB-2F9F2D3F7CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A10636C6-3E52-40AF-B6CB-2F9F2D3F7CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A10636C6-3E52-40AF-B6CB-2F9F2D3F7CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A10636C6-3E52-40AF-B6CB-2F9F2D3F7CAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D9B3601-45FD-4481-9FE5-536EB4EEF8D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D9B3601-45FD-4481-9FE5-536EB4EEF8D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D9B3601-45FD-4481-9FE5-536EB4EEF8D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D9B3601-45FD-4481-9FE5-536EB4EEF8D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9443999C-CB1E-4514-829D-93FE1820F941}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9443999C-CB1E-4514-829D-93FE1820F941}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9443999C-CB1E-4514-829D-93FE1820F941}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9443999C-CB1E-4514-829D-93FE1820F941}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
