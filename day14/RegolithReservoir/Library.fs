@@ -1,9 +1,9 @@
-﻿namespace RegolithReservoir
+namespace RegolithReservoir
 
 type CellState =
-    | Air
-    | Sand
-    | Rock
+    | A // Air
+    | S // Sand
+    | R // Rock
 
 
 type Cave = { leftSide: int; cells: CellState[,] }
@@ -13,6 +13,16 @@ type GlobalPosition = int * int
 type RockPath = GlobalPosition list
 
 open FParsec
+
+module Array2DPlus =
+    let fold<'T> fn initial (arr: 'T[,]) =
+        let mutable acc = initial
+
+        for y in 0 .. Array2D.length1 arr - 1 do
+            for x in 0 .. Array2D.length2 arr - 1 do
+                acc <- fn x y acc arr.[y, x]
+
+        acc
 
 module Parser =
     let parse (input: string) : RockPath list =
@@ -27,7 +37,6 @@ module Parser =
         | Success(result, _, _) -> result |> List.filter (fun path -> path.Length > 0)
         | Failure(msg, _, _) -> failwith msg
 
-
 module RockPath =
     let boundingRect (path: RockPath) =
         let minX = path |> List.map fst |> List.min
@@ -37,7 +46,28 @@ module RockPath =
         (minX, minY), (maxX, maxY)
 
 module Cave =
-    let SAND_PORING_POINT = GlobalPosition(500, 0)
+    let SAND_FLOWING_POINT = GlobalPosition(500, 0)
+
+    let toStr cave =
+        let cellToStr (cell: CellState) =
+            match cell with
+            | A -> "."
+            | S -> "o"
+            | R -> "#"
+
+        let rowToStr (row: CellState[]) = row |> Array.map cellToStr
+
+        let mutable rows = []
+
+        for y in 0 .. Array2D.length1 cave.cells - 1 do
+            let row = cave.cells.[y, *]
+            let strRow = rowToStr row
+            rows <- rows @ [ String.concat "" strRow ]
+
+        // Join rows by newline
+        rows |> String.concat "\n"
+
+    let debug cave = printfn "%s" (toStr cave)
 
     let l2g (localPosition: LocalPosition) (cave: Cave) =
         let localX, y = localPosition
@@ -45,7 +75,7 @@ module Cave =
         GlobalPosition(globalX, y)
 
     let g2l (globalPosition: GlobalPosition) (cave: Cave) =
-        let globalX, y = globalPosition
+        let globalX, (y: int) = globalPosition
         let localX = globalX - cave.leftSide
         LocalPosition(localX, y)
 
@@ -53,6 +83,8 @@ module Cave =
         let (localX, y) = g2l pos cave
 
         if localX < 0 || Array2D.length2 cave.cells <= localX then
+            printfn "global %A" pos
+            printfn "left side: %A" cave.leftSide
             failwith (sprintf "out of range (x): %A" localX)
 
         if y < 0 || Array2D.length1 cave.cells <= y then
@@ -61,28 +93,51 @@ module Cave =
 
         cave.cells.[y, localX] <- state
 
+
+    let setLocal (state: CellState) (pos: LocalPosition) (cave: Cave) =
+        let (localX, y) = pos
+        cave.cells.[y, localX] <- state
+
     let setSand (pos: GlobalPosition) (cave: Cave) =
         let x, y = g2l pos cave
-        set Sand pos cave
+        set S pos cave
 
-    let create (rockPaths: RockPath list) : Cave =
+    type CreateCaveOption =
+        | EndlessVoid
+        | InfiniteHorizontalLine of (int) // how far from the bottom of the cave
+
+    let create (opts: CreateCaveOption) (rockPaths: RockPath list) : Cave =
         let getMostRight = List.maxBy (fun (x, _) -> x)
         let getMostLeft points = points |> List.minBy (fun (x, _) -> x)
         let getBottom points = points |> List.maxBy (fun (_, y) -> y)
-
 
         let rects = rockPaths |> List.map RockPath.boundingRect
         let leftEdge = rects |> List.map fst |> getMostLeft
         let rightEdge = rects |> List.map snd |> getMostRight
         let bottomEdge = rects |> List.map snd |> getBottom
         // width + 2 (left, right)
-        let width = fst rightEdge - fst leftEdge + 1 + 2
         // height
-        let height = snd bottomEdge + 1
-        let mutable cells = Array2D.init height width (fun _ _ -> Air)
+        // - part2: two plus the highest y coordinate of any point in your scan
+        let height =
+            match opts with
+            | EndlessVoid -> snd bottomEdge + 1
+            | InfiniteHorizontalLine distance -> snd bottomEdge + 1 + distance
+        // let width = fst rightEdge - fst leftEdge + 1 + (margin * 2)
+        let width = (height + 1) * 2 - 1
+
+        let mutable cells = Array2D.init height width (fun _ _ -> A)
+
+        let leftEdgeX = fst leftEdge
+        let rightEdgeX = fst rightEdge
+        let flowingPointX = fst SAND_FLOWING_POINT
+        // printfn "leftEdge: %A" leftEdgeX
+        // printfn "rightEdge: %A" rightEdgeX
+        // printfn "path width: %A" (rightEdgeX - leftEdgeX)
+        // printfn "cell width: %A" width
+        // printfn "cell height: %A" height
 
         let cave =
-            { leftSide = fst leftEdge - 1
+            { leftSide = fst leftEdge - (leftEdgeX - (flowingPointX - width / 2))
               cells = cells }
 
         for path in rockPaths do
@@ -102,7 +157,7 @@ module Cave =
 
                     while y <= snd end'' do
                         let x = fst start''
-                        set Rock (x, y) cave
+                        set R (x, y) cave
                         y <- y + 1
                 else
                     let start'', end'' =
@@ -115,13 +170,21 @@ module Cave =
 
                     while x <= fst end'' do
                         let localY = snd start''
-                        set Rock (x, localY) cave
+                        set R (x, localY) cave
                         x <- x + 1
+
+        match opts with
+        | InfiniteHorizontalLine distance ->
+            let bottomIndex = Array2D.length1 cave.cells - 1
+
+            for x in 0 .. Array2D.length2 cave.cells - 1 do
+                setLocal R (x, bottomIndex) cave
+        | _ -> ()
 
         cave
 
     let createDrop (cave: Cave) =
-        let globalX, y = SAND_PORING_POINT
+        let globalX, y = SAND_FLOWING_POINT
         let localX = globalX - cave.leftSide
         LocalPosition(localX, y)
 
@@ -152,9 +215,9 @@ module Cave =
                 let left = cave.cells.[y + 1, x - 1]
                 let right = cave.cells.[y + 1, x + 1]
 
-                if below = Air then Drop(x, y + 1)
-                else if left = Air then Drop(x - 1, y + 1)
-                else if right = Air then Drop(x + 1, y + 1)
+                if below = A then Drop(x, y + 1)
+                else if left = A then Drop(x - 1, y + 1)
+                else if right = A then Drop(x + 1, y + 1)
                 else Stop localPos
 
         let rec falldown (cave: Cave) (pos: LocalPosition) =
@@ -187,3 +250,30 @@ module Cave =
             | Void -> (cave', sandPositions)
 
         dropUnitsOfSandUntilFlowingIntoVoid' cave []
+
+
+    let dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint cave =
+        let rec dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint' (cave: Cave) (sandPositions) =
+            let cave', dropResult = drop cave
+
+            match dropResult with
+            | Hit gpos ->
+                if gpos = SAND_FLOWING_POINT then
+                    cave'
+                else
+                    let sandPositions' = sandPositions @ [ gpos ]
+                    dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint' cave' sandPositions'
+            | Void ->
+                debug cave'
+                failwith "should not reach here"
+
+        dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint' cave []
+
+    let countSand (cave: Cave) =
+        Array2DPlus.fold
+            (fun _ _ acc cell ->
+                match cell with
+                | S -> acc + 1
+                | _ -> acc)
+            0
+            cave.cells

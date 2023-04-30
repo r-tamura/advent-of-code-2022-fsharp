@@ -2,13 +2,19 @@
 
 let part1 (inputFilePath: string) =
     let rockPaths = inputFilePath |> System.IO.File.ReadAllText |> Parser.parse
-    let cave = Cave.create rockPaths
+    let cave = Cave.create Cave.EndlessVoid rockPaths
     let cave', sandPositions = Cave.dropUnitsOfSandUntilFlowingIntoVoid cave
     printfn "%A" sandPositions.Length
 
 let part2 (inputFilePath: string) =
-    // inputFilePath |> System.IO.File.ReadAllText |> Parser.parse |> printfn "%A"
-    failwith "not implemented"
+    inputFilePath
+    |> System.IO.File.ReadAllText
+    |> Parser.parse
+    |> Cave.create (Cave.InfiniteHorizontalLine 2)
+    |> Cave.dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint
+    |> Cave.countSand
+    |> printfn "%A"
+
 
 [<EntryPoint>]
 let main argv =

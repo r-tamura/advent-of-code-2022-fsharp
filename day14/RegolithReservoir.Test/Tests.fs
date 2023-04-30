@@ -61,111 +61,82 @@ module RockPath =
 
 module Cave =
     [<Fact>]
-    let ``creat a cave`` () =
-        //  012345
-        // 0.....
-        // 1.#...
-        // 2.#...
-        // 3..##.
-        // 4xxxxx
-        let rockPaths = [ [ (1, 1); (1, 2) ]; [ (3, 3); (2, 3) ] ]
+    let ``create a cave with void`` () =
+        //            1
+        //  01234567890
+        // 0...........
+        // 1....#......
+        // 2....#......
+        // 3.....##....
+        // 4...........
+        // 6...........
+        let rockPaths = [ [ (499, 1); (499, 2) ]; [ (500, 3); (501, 3) ] ]
 
-        let actual = Cave.create rockPaths
+        let actual = Cave.create Cave.EndlessVoid rockPaths
 
         let expectedState =
             array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Rock; Air; Air; Air ]
-                  [ Air; Rock; Air; Air; Air ]
-                  [ Air; Air; Rock; Rock; Air ] ]
-
-        let expected = { leftSide = 0; cells = expectedState }
-
-        assertCave expected actual
-
-
-    [<Fact>]
-    let ``create cave (sample from the problem)`` () =
-        // ......+...
-        // ..........
-        // ..........
-        // ..........
-        // ....#...##
-        // ....#...#.
-        // ..###...#.
-        // ........#.
-        // ........#.
-        // #########.
-        let rockPaths =
-            [ [ (498, 4); (498, 6); (496, 6) ]; [ (503, 4); (502, 4); (502, 9); (494, 9) ] ]
-
-        let actual = Cave.create rockPaths
-
-        let mutable expectedState =
-            array2D
-                [ [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Rock; Air; Air; Air; Rock; Rock; Air ]
-                  [ Air; Air; Air; Air; Air; Rock; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Rock; Rock; Rock; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Air; Air ] ]
-
+                [ [ A; A; A; A; A; A; A; A; A ]
+                  [ A; A; A; R; A; A; A; A; A ]
+                  [ A; A; A; R; A; A; A; A; A ]
+                  [ A; A; A; A; R; R; A; A; A ] ]
 
         let expected =
-            { leftSide = 493
+            { leftSide = 496
               cells = expectedState }
 
         assertCave expected actual
 
     [<Fact>]
-    let ``when there is a rock in the drop path, it stop at a rock`` () =
-        let rockPaths =
-            [ [ (498, 4); (498, 6); (496, 6) ]; [ (503, 4); (502, 4); (502, 9); (494, 9) ] ]
+    let ``create a cave with the infinite horizontal line`` () =
+        //            1
+        //  01234567890
+        // 0...........
+        // 1....#......
+        // 2....#......
+        // 3.....##....
+        // 4...........
+        // 6###########
+        let rockPaths = [ [ (499, 1); (499, 2) ]; [ (500, 3); (501, 3) ] ]
 
-        let cave = Cave.create rockPaths
-        let (nextCave, dropResult) = Cave.drop cave
+        let actual = Cave.create (Cave.InfiniteHorizontalLine 2) rockPaths
 
-        let mutable expectedState =
+        let expectedState =
             array2D
-                [ [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Rock; Air; Air; Air; Rock; Rock; Air ]
-                  [ Air; Air; Air; Air; Air; Rock; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Rock; Rock; Rock; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Air; Air; Rock; Air; Air ]
-                  [ Air; Air; Air; Air; Air; Air; Air; Sand; Air; Rock; Air; Air ]
-                  [ Air; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Rock; Air; Air ] ]
+                [ [ A; A; A; A; A; A; A; A; A; A; A; A; A ]
+                  [ A; A; A; A; A; R; A; A; A; A; A; A; A ]
+                  [ A; A; A; A; A; R; A; A; A; A; A; A; A ]
+                  [ A; A; A; A; A; A; R; R; A; A; A; A; A ]
+                  [ A; A; A; A; A; A; A; A; A; A; A; A; A ]
+                  [ R; R; R; R; R; R; R; R; R; R; R; R; R ] ]
 
         let expected =
-            { leftSide = 493
+            { leftSide = 494
               cells = expectedState }
 
-        Assert.Equal(Cave.Hit(GlobalPosition(500, 8)), dropResult)
-
-        assertCave expected cave
+        assertCave expected actual
 
 
     [<Fact>]
     let ``when there is no rock, it drops into void`` () =
-        let rockPaths = [ [ (499, 1); (499, 2) ]; [ (501, 1); (501, 2) ] ]
+        let cave =
+            { leftSide = 495
+              cells =
+                array2D
+                    [ [ A; A; A; A; A; A; A; A; A; A; A ]
+                      [ A; A; A; A; R; A; R; A; A; A; A ]
+                      [ A; A; A; A; R; A; R; A; A; A; A ] ] }
 
-        let cave = Cave.create rockPaths
         let (nextCave, dropResult) = Cave.drop cave
 
         let mutable expectedState =
             array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Rock; Air; Rock; Air ]
-                  [ Air; Rock; Air; Rock; Air ] ]
+                [ [ A; A; A; A; A; A; A; A; A; A; A ]
+                  [ A; A; A; A; R; A; R; A; A; A; A ]
+                  [ A; A; A; A; R; A; R; A; A; A; A ] ]
 
         let expected =
-            { leftSide = 498
+            { leftSide = 495
               cells = expectedState }
 
         Assert.Equal(Cave.Void, dropResult)
@@ -177,19 +148,12 @@ module Cave =
     let ``when there is a rock in the way and left is air, it drops to the left`` () =
         let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Air; Rock; Air; Air ]
-                      [ Rock; Rock; Rock; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; A; R; A; A ]; [ R; R; R; R; A ] ] }
 
         let (nextCave, dropResult) = Cave.drop cave
 
         let expectedState =
-            array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Sand; Rock; Air; Air ]
-                  [ Rock; Rock; Rock; Rock; Air ] ]
+            array2D [ [ A; A; A; A; A ]; [ A; S; R; A; A ]; [ R; R; R; R; A ] ]
 
         let expected =
             { leftSide = 498
@@ -203,19 +167,12 @@ module Cave =
     let ``when there is a rock in the way and left and right is air, it drops to the right`` () =
         let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Rock; Rock; Air; Air ]
-                      [ Air; Rock; Rock; Rock; Rock ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; R; R; A; A ]; [ A; R; R; R; R ] ] }
 
         let (nextCave, dropResult) = Cave.drop cave
 
         let expectedState =
-            array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Rock; Rock; Sand; Air ]
-                  [ Air; Rock; Rock; Rock; Rock ] ]
+            array2D [ [ A; A; A; A; A ]; [ A; R; R; S; A ]; [ A; R; R; R; R ] ]
 
         let expected =
             { leftSide = 498
@@ -229,21 +186,12 @@ module Cave =
     let ``caveの左端に到達したとき、voidへ落ちる`` () =
         let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Air; Rock; Rock; Air ]
-                      [ Air; Rock; Rock; Rock; Rock ]
-                      [ Air; Rock; Rock; Rock; Rock ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; A; R; R; A ]; [ A; R; R; R; R ]; [ A; R; R; R; R ] ] }
 
         let (nextCave, dropResult) = Cave.drop cave
 
         let expectedState =
-            array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Air; Rock; Rock; Air ]
-                  [ Air; Rock; Rock; Rock; Rock ]
-                  [ Air; Rock; Rock; Rock; Rock ] ]
+            array2D [ [ A; A; A; A; A ]; [ A; A; R; R; A ]; [ A; R; R; R; R ]; [ A; R; R; R; R ] ]
 
         let expected =
             { leftSide = 498
@@ -257,21 +205,12 @@ module Cave =
     let ``caveの右端に到達したとき、voidへ落ちる`` () =
         let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Rock; Rock; Air; Air ]
-                      [ Rock; Rock; Rock; Rock; Air ]
-                      [ Rock; Rock; Rock; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; R; R; A; A ]; [ R; R; R; R; A ]; [ R; R; R; R; A ] ] }
 
         let (nextCave, dropResult) = Cave.drop cave
 
         let expectedState =
-            array2D
-                [ [ Air; Air; Air; Air; Air ]
-                  [ Air; Rock; Rock; Air; Air ]
-                  [ Rock; Rock; Rock; Rock; Air ]
-                  [ Rock; Rock; Rock; Rock; Air ] ]
+            array2D [ [ A; A; A; A; A ]; [ A; R; R; A; A ]; [ R; R; R; R; A ]; [ R; R; R; R; A ] ]
 
         let expected =
             { leftSide = 498
@@ -283,48 +222,98 @@ module Cave =
 
     [<Fact>]
     let ``when there is no rock in the way, no units of sand comes to rest`` () =
-        let mutable cave =
+        let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Rock; Air; Rock; Air ]
-                      [ Air; Rock; Air; Rock; Air ]
-                      [ Air; Rock; Air; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; R; A; R; A ]; [ A; R; A; R; A ]; [ A; R; A; R; A ] ] }
 
         let actualCave, sandPositions = Cave.dropUnitsOfSandUntilFlowingIntoVoid cave
 
         let expected =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Rock; Air; Rock; Air ]
-                      [ Air; Rock; Air; Rock; Air ]
-                      [ Air; Rock; Air; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; R; A; R; A ]; [ A; R; A; R; A ]; [ A; R; A; R; A ] ] }
 
         Assert.Equal<GlobalPosition list>([], sandPositions)
         assertCave expected actualCave
 
     [<Fact>]
     let ``when there is a rock in the way at the bottom of the flowing point, one unit of sand comes to rest`` () =
-        let mutable cave =
+        let cave =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Air; Air; Air; Air ]
-                      [ Air; Rock; Rock; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; A; A; A; A ]; [ A; R; R; R; A ] ] }
 
         let actualCave, sandPositions = Cave.dropUnitsOfSandUntilFlowingIntoVoid cave
 
         let expected =
             { leftSide = 498
-              cells =
-                array2D
-                    [ [ Air; Air; Air; Air; Air ]
-                      [ Air; Air; Sand; Air; Air ]
-                      [ Air; Rock; Rock; Rock; Air ] ] }
+              cells = array2D [ [ A; A; A; A; A ]; [ A; A; S; A; A ]; [ A; R; R; R; A ] ] }
 
         Assert.Equal<GlobalPosition list>([ GlobalPosition(500, 1) ], sandPositions)
         assertCave expected actualCave
+
+    [<Fact>]
+    let ``when 2 x 6`` () =
+        //  0123456
+        // 0...x...
+        // 1..xxx..
+        // 2.xxxxx.
+        // 3#######
+        let cave =
+            { leftSide = 497
+              cells =
+                array2D
+                    [ [ A; A; A; A; A; A; A ]
+                      [ A; A; A; A; A; A; A ]
+                      [ A; A; A; A; A; A; A ]
+                      [ R; R; R; R; R; R; R ] ] }
+
+        let actualCave =
+            Cave.dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint cave
+
+        let expected =
+            { leftSide = 497
+              cells =
+                array2D
+                    [ [ A; A; A; S; A; A; A ]
+                      [ A; A; S; S; S; A; A ]
+                      [ A; S; S; S; S; S; A ]
+                      [ R; R; R; R; R; R; R ] ] }
+
+        assertCave expected actualCave
+
+
+    [<Fact>]
+    let ``part2 sample`` () =
+        // ............o............
+        // ...........ooo...........
+        // ..........ooooo..........
+        // .........ooooooo.........
+        // ........oo#ooo##o........
+        // .......ooo#ooo#ooo.......
+        // ......oo###ooo#oooo......
+        // .....oooo.oooo#ooooo.....
+        // ....oooooooooo#oooooo....
+        // ...ooo#########ooooooo...
+        // ..ooooo.......ooooooooo..
+        // #########################
+        let rockPaths =
+            [ [ (498, 4); (498, 6); (496, 6) ]; [ (503, 4); (502, 4); (502, 9); (494, 9) ] ]
+
+        let cave = Cave.create (Cave.InfiniteHorizontalLine 2) rockPaths
+        let actual = Cave.dropUnitsOfSandUntilAUnitOfSandComesToRestAtTheFlowingPoint cave
+
+        let expectedCells =
+            "............o............
+...........ooo...........
+..........ooooo..........
+.........ooooooo.........
+........oo#ooo##o........
+.......ooo#ooo#ooo.......
+......oo###ooo#oooo......
+.....oooo.oooo#ooooo.....
+....oooooooooo#oooooo....
+...ooo#########ooooooo...
+..ooooo.......ooooooooo..
+#########################"
+
+
+        Assert.Equal(expectedCells, (Cave.toStr actual))
