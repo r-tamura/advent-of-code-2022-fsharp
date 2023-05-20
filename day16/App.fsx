@@ -39,7 +39,7 @@ let parse inputFile =
     System.IO.File.ReadAllLines inputFile |> Array.map parseLine
 
 
-let existsByName name = Set.exists (fun v -> v = name)
+
 
 let initDistancesFrom start valves =
     let distances =
@@ -76,59 +76,94 @@ let initDistancesFrom start valves =
 
     distances
 
+let mutable cache = Map.empty
+
+let rec dfs time valve (opened: int) distFromTo valves bits =
+    let cached = Map.tryFind (time, valve, opened) cache
+
+    match cached with
+    | Some(v) -> v
+    | None ->
+        distFromTo
+        |> Map.find valve.name
+        |> Map.keys
+        |> Seq.fold
+            (fun maxValue neighbor ->
+                let neighborBit = bits |> Map.find neighbor
+                let isOpened = opened &&& neighborBit
+
+                if isOpened > 0 then
+                    maxValue
+                else
+                    let dist = distFromTo |> Map.find valve.name |> Map.find neighbor
+                    let remainingTime = time - (dist + 1) // move (dist) + open (1)
+
+                    if remainingTime > 0 then
+                        let neighborValve = List.find (fun v -> v.name = neighbor) valves
+
+                        let candidate =
+                            (dfs remainingTime neighborValve (opened ||| neighborBit) distFromTo valves bits)
+                            + neighborValve.rate * remainingTime
+
+                        let next = max maxValue candidate
+                        cache <- Map.add (time, valve, opened) next cache
+                        next
+                    else
+                        maxValue)
+            0
+
 
 module Part1 =
     let solve inputFile =
         let valves = parse inputFile |> Array.toList
-
-        let distFromTo = valves |> initDistancesFrom "AA"
-
-        let mutable cache = Map.empty
-
-        let rec dfs time valve opened =
-            let cached = Map.tryFind (time, valve, opened) cache
-
-            match cached with
-            | Some(v) -> v
-            | None ->
-                distFromTo
-                |> Map.find valve.name
-                |> Map.keys
-                |> Seq.fold
-                    (fun maxValue neighbor ->
-                        match existsByName neighbor opened with
-                        | true -> maxValue
-                        | false ->
-                            let dist = distFromTo |> Map.find valve.name |> Map.find neighbor
-                            let remainingTime = time - (dist + 1) // move (dist) + open (1)
-
-                            if remainingTime > 0 then
-                                let neighborValve = List.find (fun v -> v.name = neighbor) valves
-
-                                let candidate =
-                                    (dfs remainingTime neighborValve (Set.add neighbor opened))
-                                    + neighborValve.rate * remainingTime
-
-                                let next = max maxValue candidate
-                                cache <- Map.add (time, valve, opened) next cache
-                                next
-                            else
-                                maxValue)
-                    0
-
         let start = "AA"
+
+        let distFromTo = valves |> initDistancesFrom start
+
         let startValve = List.find (fun v -> v.name = start) valves
-        dfs 30 startValve (Set.ofArray [| startValve.name |]) |> printfn "%d"
+
+        let nonempty =
+            distFromTo |> Map.keys |> Seq.filter (fun k -> k <> start) |> Seq.toList
+
+        let bits = nonempty |> List.mapi (fun i v -> v, (1 <<< i)) |> Map.ofList
+
+        dfs 30 startValve 0 distFromTo valves bits |> printfn "%d"
 
 
 module Part2 =
-    let solve inputFile = failwith "not implemented"
+    let solve inputFile =
+        let valves = parse inputFile |> Array.toList
+        let start = "AA"
+        let distFromTo = valves |> initDistancesFrom start
+
+        let startValve = List.find (fun v -> v.name = start) valves
+
+        let nonempty =
+            distFromTo |> Map.keys |> Seq.filter (fun k -> k <> start) |> Seq.toList
+
+        let bits = nonempty |> List.mapi (fun i v -> v, (1 <<< i)) |> Map.ofList
+
+        let maxOpened = (1 <<< (List.length nonempty)) - 1
+        let mutable maxValue = 0
+
+        seq { 0 .. (maxOpened / 2) }
+        |> Seq.fold
+            (fun maxValue opened ->
+                let cand =
+                    (dfs 26 startValve opened distFromTo valves bits)
+                    + (dfs 26 startValve (maxOpened ^^^ opened) distFromTo valves bits)
+
+                max maxValue cand)
+            0
+        |> printfn "%d"
 
 let args = fsi.CommandLineArgs |> Array.tail
 
 let filepath, part =
     match args with
     | [| filepath |] -> filepath, 1
+    | [| filepath; "1" |] -> filepath, 1
+    | [| filepath; "2" |] -> filepath, 2
     | _ -> failwith "usage: dotnet fsi App.fsx <input file>"
 
 
